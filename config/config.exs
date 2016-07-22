@@ -13,6 +13,9 @@ config :elm_simple_chat, ElmSimpleChat.Endpoint,
   pubsub: [name: ElmSimpleChat.PubSub,
            adapter: Phoenix.PubSub.PG2]
 
+config :elm_simple_chat, ElmSimpleChat.Storage.ETS,
+  messages_file: 'messages.dat'
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

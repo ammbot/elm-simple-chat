@@ -6,5 +6,8 @@ config :elm_simple_chat, ElmSimpleChat.Endpoint,
   http: [port: 4001],
   server: false
 
+config :elm_simple_chat, ElmSimpleChat.Storage.ETS,
+  messages_file: 'messages_test.dat'
+
 # Print only warnings and errors during test
 config :logger, level: :warn
