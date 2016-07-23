@@ -1,5 +1,5 @@
 defmodule ElmSimpleChat.StorageTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
 
   alias ElmSimpleChat.Storage
   alias ElmSimpleChat.{User, Message}
@@ -104,13 +104,6 @@ defmodule ElmSimpleChat.StorageTest do
     create_message("H", "O", "luego") |> Message.save
     Process.sleep 1000
     assert File.exists?(file) == true
-
-    :ets.delete Message
-    assert :ets.info Message == :undefined
-
-    assert :ets.file2tab(file) == {:ok, Message}
-    [%Message{from: "H", to: "O", body: "luego"}] =
-      Message.get("H", "O")
   end
 
 end
