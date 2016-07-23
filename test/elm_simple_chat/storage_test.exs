@@ -1,5 +1,5 @@
 defmodule ElmSimpleChat.StorageTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias ElmSimpleChat.Storage
   alias ElmSimpleChat.{User, Message}
@@ -69,7 +69,7 @@ defmodule ElmSimpleChat.StorageTest do
     true = Message.save msg
   end
 
-  test "API new_message should not duplicated (id)" do
+  test "API new_message should not duplicated (key)" do
     :ets.delete_all_objects Message
     msg = create_message "A", "B", "nueva"
     true = Message.save msg
@@ -92,6 +92,25 @@ defmodule ElmSimpleChat.StorageTest do
     msgs = Message.get("lobby", "lobby")
     assert length(msgs) == 1
     [%Message{body: "hola"}] = msgs
+  end
+
+  test "table message should flushed to disk 1 second after updated" do
+    file =
+      :elm_simple_chat
+      |> Application.get_env(Storage.ETS)
+      |> Keyword.get(:messages_file)
+    File.rm file
+
+    create_message("H", "O", "luego") |> Message.save
+    Process.sleep 1000
+    assert File.exists?(file) == true
+
+    :ets.delete Message
+    assert :ets.info Message == :undefined
+
+    assert :ets.file2tab(file) == {:ok, Message}
+    [%Message{from: "H", to: "O", body: "luego"}] =
+      Message.get("H", "O")
   end
 
 end

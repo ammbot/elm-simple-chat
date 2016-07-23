@@ -1,5 +1,7 @@
 defmodule ElmSimpleChat.Message do
 
+  alias ElmSimpleChat.Storage.ETS
+
   defstruct id: "",
             key: "",
             from: "",
@@ -29,6 +31,8 @@ defmodule ElmSimpleChat.Message do
   """
   def save(%__MODULE__{key: key} = model) do
     true = :ets.insert __MODULE__, {key, model}
+    ETS.flush __MODULE__
+    true
   end
 
   @doc """
