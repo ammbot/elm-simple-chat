@@ -43,8 +43,14 @@ defmodule ElmSimpleChat.RoomChannelTest do
   end
 
   test "shout broadcasts to room:lobby", %{socket: socket} do
-    push socket, "shout", %{"hello" => "all"}
-    assert_broadcast "shout", %{"hello" => "all"}
+    push socket, "shout", %{"from" => "me", "to" => "room:lobby", "body" => "hello"}
+    assert_broadcast "shout", %Message{to: "lobby"}
+  end
+
+  test "shout broadcasts to without room prefix", %{socket: socket} do
+    ref = push socket, "shout", %{"from" => "me", "to" => "lobby", "body" => "hello"}
+    assert_reply ref, :error, %{"msg" => "invalid request" }
+    refute_broadcast "shout", _
   end
 
   test "broadcasts are pushed to the client", %{socket: socket} do
