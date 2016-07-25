@@ -9,6 +9,7 @@
 
     <title>Hello ElmSimpleChat!</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+    <link rel="stylesheet" href="<%= static_path(@conn, "/semantic/semantic.min.css") %>">
   </head>
 
   <body>

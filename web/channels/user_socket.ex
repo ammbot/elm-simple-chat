@@ -2,7 +2,7 @@ defmodule ElmSimpleChat.UserSocket do
   use Phoenix.Socket
 
   ## Channels
-  # channel "room:*", ElmSimpleChat.RoomChannel
+  channel "room:*", ElmSimpleChat.RoomChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
