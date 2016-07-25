@@ -5,10 +5,13 @@ import Phoenix.Socket
 
 import Main.Msgs exposing (Msg(..))
 import Main.Models exposing (Model)
-import Main.Commands exposing (joinChannel)
+import Main.Commands exposing (joinChannel, push)
 
 import Login.Msgs
 import Login.Update
+import Chatbox.Msgs
+import Chatbox.Update
+import Chatbox.Models as Chatbox
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -68,4 +71,27 @@ update msg model =
       in
           ( { model | login = updatedLogin }
           , Cmd.map LoginMsg cmd
+          )
+
+    ChatboxMsg Chatbox.Msgs.Send ->
+      if not (String.isEmpty model.chatbox.body) then
+        let
+            ( phxSocket, phxCmd ) =
+              push model
+        in
+            ( { model | phxSocket = phxSocket
+              , chatbox = Chatbox.init
+              }
+            , Cmd.map PhoenixMsg phxCmd
+            )
+      else
+        ( model, Cmd.none )
+
+    ChatboxMsg subMsg ->
+      let
+          ( updatedChatbox, cmd ) =
+            Chatbox.Update.update subMsg model.chatbox
+      in
+          ( { model | chatbox = updatedChatbox }
+          , Cmd.map ChatboxMsg cmd
           )

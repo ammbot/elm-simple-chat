@@ -30,19 +30,19 @@ joinChannel model =
             |> Phoenix.Socket.join channel
   in
       ( phxSocket , phxCmd )
---
--- push : Socket Msg -> String -> String -> String -> ( Socket Msg, Cmd (WS.Msg Msg) )
--- push socket from to text =
---   let
---       payload =
---         JE.object [ ("body", JE.string text)
---                   , ("from", JE.string from)
---                   , ("to", JE.string to)
---                   ]
---       push' =
---         Phoenix.Push.init "shout" "room:lobby"
---           |> Phoenix.Push.withPayload payload
---       ( phxSocket, phxCmd) =
---         WS.push push' socket
---   in
---       ( phxSocket, phxCmd )
+
+push : Model -> ( Phoenix.Socket.Socket Msg, Cmd (Phoenix.Socket.Msg Msg))
+push model =
+  let
+      payload =
+        JE.object [ ("body", JE.string model.chatbox.body)
+                  , ("from", JE.string model.login.name)
+                  , ("to", JE.string "room:lobby")  -- FIXME
+                  ]
+      push' =
+        Phoenix.Push.init "shout" "room:lobby"
+          |> Phoenix.Push.withPayload payload
+      ( phxSocket, phxCmd) =
+        Phoenix.Socket.push push' model.phxSocket
+  in
+      ( phxSocket, phxCmd )

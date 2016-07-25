@@ -3,7 +3,6 @@ defmodule ElmSimpleChat.RoomChannel do
 
   alias ElmSimpleChat.{User, Message}
 
-  require Logger
 
   def join("room:lobby", payload, socket) do
     if authorized?(payload) do

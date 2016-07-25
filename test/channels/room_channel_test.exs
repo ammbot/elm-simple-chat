@@ -4,6 +4,8 @@ defmodule ElmSimpleChat.RoomChannelTest do
   alias ElmSimpleChat.{User, Message}
   alias ElmSimpleChat.RoomChannel
 
+  require Logger
+
   setup do
     {:ok, _, socket} =
       socket("user_id", %{some: :assign})

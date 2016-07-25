@@ -5,16 +5,21 @@ import Phoenix.Channel
 
 import Main.Msgs exposing (Msg)
 
-import Login.Models
+import Login.Models as Login
+import Chatbox.Models as Chatbox
 
 type alias Model =
   { phxSocket : Phoenix.Socket.Socket Msg
-  , login : Login.Models.Model }
+  , login : Login.Model
+  , chatbox : Chatbox.Model
+  }
 
 init : Model
 init =
   { phxSocket = initPhxSocket
-  , login = Login.Models.init }
+  , login = Login.init
+  , chatbox = Chatbox.init
+  }
 
 socketServer : String
 socketServer =

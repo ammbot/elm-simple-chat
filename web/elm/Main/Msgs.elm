@@ -5,6 +5,7 @@ import Phoenix.Socket
 import Json.Encode as JE
 
 import Login.Msgs
+import Chatbox.Msgs
 
 type Msg
   = PhoenixMsg (Phoenix.Socket.Msg Msg)
@@ -16,3 +17,4 @@ type Msg
   | PresenceMessage JE.Value
   | LeavedMessage JE.Value
   | LoginMsg Login.Msgs.Msg
+  | ChatboxMsg Chatbox.Msgs.Msg
