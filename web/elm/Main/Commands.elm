@@ -20,10 +20,12 @@ joinChannel model =
           |> Phoenix.Channel.withPayload payload
           |> Phoenix.Channel.onJoin (always (JoinedChannel room))
           |> Phoenix.Channel.onClose (always (LeavedChannel room))
+          |> Phoenix.Channel.onError (always (ErrorChannel room))
           |> Phoenix.Channel.onJoinError (always (JoinError room))
       ( phxSocket, phxCmd ) =
           model.phxSocket
             |> Phoenix.Socket.on "shout" room ReceivedMessage
+            |> Phoenix.Socket.on "private" room PrivateMessage
             |> Phoenix.Socket.on "newcomer" room NewcomerMessage
             |> Phoenix.Socket.on "presence" room PresenceMessage
             |> Phoenix.Socket.on "leave" room LeavedMessage

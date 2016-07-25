@@ -1,6 +1,8 @@
 defmodule ElmSimpleChat.RoomChannelTest do
   use ElmSimpleChat.ChannelCase
 
+  alias ElmSimpleChat.Endpoint
+
   alias ElmSimpleChat.{User, Message}
   alias ElmSimpleChat.RoomChannel
 
@@ -59,4 +61,11 @@ defmodule ElmSimpleChat.RoomChannelTest do
     broadcast_from! socket, "broadcast", %{"some" => "data"}
     assert_push "broadcast", %{"some" => "data"}
   end
+
+  test "push to private channel" do
+    Endpoint.broadcast("room:someone",  "private",
+     %{"from" => "me", "to" => "someone", "body" => "hey"})
+    assert_push "private", %Message{from: "me", to: "someone", body: "hey"}
+  end
+
 end

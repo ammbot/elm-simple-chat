@@ -35,12 +35,27 @@ update msg model =
           )
 
     LeavedChannel room ->
-      ( model, Cmd.none )
+      let
+        _ = Debug.log "LeavedChannel" room
+      in
+          ( model, Cmd.none )
+
+    ErrorChannel room ->
+      let
+          ( phxSocket, phxCmd ) =
+            joinChannel model
+      in
+          ( { model | phxSocket = phxSocket }
+          , Cmd.map PhoenixMsg phxCmd
+          )
 
     JoinError room ->
       ( model, Cmd.none )
 
     ReceivedMessage raw ->
+      ( model, Cmd.none )
+
+    PrivateMessage raw ->
       ( model, Cmd.none )
 
     NewcomerMessage raw ->

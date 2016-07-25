@@ -11,8 +11,10 @@ type Msg
   = PhoenixMsg (Phoenix.Socket.Msg Msg)
   | JoinedChannel String
   | LeavedChannel String
+  | ErrorChannel String
   | JoinError String
   | ReceivedMessage JE.Value
+  | PrivateMessage JE.Value
   | NewcomerMessage JE.Value
   | PresenceMessage JE.Value
   | LeavedMessage JE.Value

@@ -1,12 +1,10 @@
 defmodule ElmSimpleChat.StorageTest do
   use ExUnit.Case, async: true
 
+  import ElmSimpleChat.TestHelper
+
   alias ElmSimpleChat.Storage
   alias ElmSimpleChat.{User, Message}
-
-  defp create_message(from, to, body) do
-    Message.new %{"body" => body, "from" => from, "to" => to}
-  end
 
   test "should init table ElmSimpleChat.Users" do
     tab = :ets.info User
