@@ -29,7 +29,7 @@ defmodule ElmSimpleChat.User do
     __MODULE__
     |> :ets.first
     |> get_users([])
-    |> Enum.map(&{&1, %__MODULE__{name: &1}})
+    |> Enum.map(&%__MODULE__{name: &1})
   end
 
   defp get_users(:'$end_of_table', acc) do

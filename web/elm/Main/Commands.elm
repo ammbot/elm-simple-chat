@@ -14,7 +14,7 @@ joinChannel model =
       room =
         "room:lobby"
       payload =
-        JE.object [ ("user", JE.string model.login.name) ]
+        JE.object [ ("name", JE.string model.login.name) ]
       channel =
         Phoenix.Channel.init room
           |> Phoenix.Channel.withPayload payload

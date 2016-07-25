@@ -49,9 +49,9 @@ defmodule ElmSimpleChat.StorageTest do
     true = User.join("mango")
     users = User.get_users
     assert length(users) == 3
-    assert {"som-o", %User{name: "som-o"}} in users
-    assert {"durian", %User{name: "durian"}} in users
-    assert {"mango", %User{name: "mango"}} in users
+    assert %User{name: "som-o"} in users
+    assert %User{name: "durian"} in users
+    assert %User{name: "mango"} in users
   end
 
   test "API new_message produce model" do
