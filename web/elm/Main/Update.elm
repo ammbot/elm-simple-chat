@@ -1,6 +1,7 @@
 module Main.Update exposing (..)
 
 import String
+import Json.Decode as JD
 import Phoenix.Socket
 
 import Main.Msgs exposing (Msg(..))
@@ -9,9 +10,14 @@ import Main.Commands exposing (joinChannel, push)
 
 import Login.Msgs
 import Login.Update
+import Rooms.Msgs
+import Rooms.Update
+import Rooms.Models as Rooms
 import Chatbox.Msgs
 import Chatbox.Update
 import Chatbox.Models as Chatbox
+
+import Debug
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -27,11 +33,13 @@ update msg model =
 
     JoinedChannel room ->
       let
-          ( updatedLogin, cmd ) =
+          ( updatedLogin, loginCmd ) =
             Login.Update.update Login.Msgs.Join model.login
+          ( updatedRooms, roomCmd ) =
+            Rooms.Update.update (Rooms.Msgs.SetSelf updatedLogin.name) model.rooms
       in
-          ( { model | login = updatedLogin }
-          , Cmd.map LoginMsg cmd
+          ( { model | login = updatedLogin, rooms = updatedRooms }
+          , Cmd.none
           )
 
     LeavedChannel room ->
@@ -52,6 +60,15 @@ update msg model =
     JoinError room ->
       ( model, Cmd.none )
 
+    RoomsMessage raw ->
+      let
+          ( updatedRooms, cmd ) =
+            Rooms.Update.update (Rooms.Msgs.Refresh raw) model.rooms
+      in
+          ( { model | rooms = updatedRooms }
+          , Cmd.map RoomsMsg cmd
+          )
+
     ReceivedMessage raw ->
       ( model, Cmd.none )
 
@@ -62,10 +79,13 @@ update msg model =
       ( model, Cmd.none )
 
     PresenceMessage raw ->
-      ( model, Cmd.none )
-
-    LeavedMessage raw ->
-      ( model, Cmd.none )
+      let
+          ( updatedRooms, cmd ) =
+            Rooms.Update.update (Rooms.Msgs.Presence raw) model.rooms
+      in
+          ( { model | rooms = updatedRooms }
+          , Cmd.none
+          )
 
     LoginMsg Login.Msgs.Join ->
       if not (String.isEmpty model.login.name) then
@@ -86,6 +106,15 @@ update msg model =
       in
           ( { model | login = updatedLogin }
           , Cmd.map LoginMsg cmd
+          )
+
+    RoomsMsg subMsg ->
+      let
+          ( updatedRooms, cmd ) =
+            Rooms.Update.update subMsg model.rooms
+      in
+          ( { model | rooms = updatedRooms }
+          , Cmd.map RoomsMsg cmd
           )
 
     ChatboxMsg Chatbox.Msgs.Send ->

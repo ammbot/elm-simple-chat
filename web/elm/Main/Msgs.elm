@@ -5,6 +5,7 @@ import Phoenix.Socket
 import Json.Encode as JE
 
 import Login.Msgs
+import Rooms.Msgs
 import Chatbox.Msgs
 
 type Msg
@@ -13,10 +14,11 @@ type Msg
   | LeavedChannel String
   | ErrorChannel String
   | JoinError String
+  | RoomsMessage JE.Value
   | ReceivedMessage JE.Value
   | PrivateMessage JE.Value
   | NewcomerMessage JE.Value
   | PresenceMessage JE.Value
-  | LeavedMessage JE.Value
   | LoginMsg Login.Msgs.Msg
+  | RoomsMsg Rooms.Msgs.Msg
   | ChatboxMsg Chatbox.Msgs.Msg

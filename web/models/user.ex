@@ -9,7 +9,7 @@ defmodule ElmSimpleChat.User do
     join %__MODULE__{name: user}
   end
   def join(%__MODULE__{name: name} = model) do
-    true = :ets.insert __MODULE__, {name, model}
+    :ets.update_counter __MODULE__, name, {3, 1}, {name, model, 0}
   end
 
   @doc """
@@ -18,8 +18,14 @@ defmodule ElmSimpleChat.User do
   def leave(user) when is_binary(user) do
     leave %__MODULE__{name: user}
   end
-  def leave(%__MODULE__{name: name}) do
-    true = :ets.delete __MODULE__, name
+  def leave(%__MODULE__{name: name} = model) do
+    counter = :ets.update_counter __MODULE__, name, {3, -1}, {name, model, 1}
+    case counter do
+      n when n <= 0 ->
+        :ets.delete __MODULE__, name
+        0
+      m -> m
+    end
   end
 
   @doc """

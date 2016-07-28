@@ -9,6 +9,9 @@ defmodule ElmSimpleChat.RoomChannelTest do
   require Logger
 
   setup do
+    create_message("admin", "system", "welcome") |> Message.save
+    create_message("admin", "lobby", "welcome") |> Message.save
+    create_message("someone", "happy", "welcome") |> Message.save
     {:ok, _, socket} =
       socket("user_id", %{some: :assign})
       |> subscribe_and_join(RoomChannel, "room:lobby", %{"name" => "someone"})
@@ -30,19 +33,22 @@ defmodule ElmSimpleChat.RoomChannelTest do
     assert %User{name: "someone", state: "online"} in User.get_users
   end
 
-  test "join will got reply for current online users and chat history that we had" do
-    create_message("admin", "system", "welcome") |> Message.save
-    create_message("admin", "lobby", "welcome") |> Message.save
-    create_message("someone", "happy", "welcome") |> Message.save
-    {:ok, reply, _} =
+  test "join broadcast presence to room:lobby" do
+    {:ok, _, _} =
       socket("user_id", %{some: :assign})
-      |> subscribe_and_join(RoomChannel, "room:lobby", %{"name" => "happy"})
-    assert %User{name: "someone", state: "online"} in reply.rooms
-    assert %User{name: "happy", state: "online"} in reply.rooms
-    assert %User{name: "lobby", state: "online"} in reply.rooms
-    assert %User{name: "admin", state: "offline"} in reply.rooms
-    refute %User{name: "system", state: "offline"} in reply.rooms
-    refute %User{name: "system", state: "online"} in reply.rooms
+      |> subscribe_and_join(RoomChannel, "room:lobby", %{"name" => "polka"})
+    assert_broadcast "presence", %User{name: "polka", state: "online"}
+  end
+
+  test "join will got rooms event for current online users" <>
+       "and chat history that we had. list will not included self" do
+    assert_push "rooms", %{rooms: rooms}
+    assert %User{name: "lobby", state: "online"} in rooms
+    assert %User{name: "admin", state: "offline"} in rooms
+    refute %User{name: "someone", state: "online"} in rooms
+    refute %User{name: "someone", state: "offline"} in rooms
+    refute %User{name: "system", state: "offline"} in rooms
+    refute %User{name: "system", state: "online"} in rooms
   end
 
   test "leave make client teminated and call User.leave" do
