@@ -1,8 +1,8 @@
 defmodule ElmSimpleChat.RoomChannelTest do
   use ElmSimpleChat.ChannelCase
 
+  import ElmSimpleChat.TestHelper
   alias ElmSimpleChat.Endpoint
-
   alias ElmSimpleChat.{User, Message}
   alias ElmSimpleChat.RoomChannel
 
@@ -27,7 +27,22 @@ defmodule ElmSimpleChat.RoomChannelTest do
   end
 
   test "join call User.join" do
-    assert %User{name: "someone"} in User.get_users
+    assert %User{name: "someone", state: "online"} in User.get_users
+  end
+
+  test "join will got reply for current online users and chat history that we had" do
+    create_message("admin", "system", "welcome") |> Message.save
+    create_message("admin", "lobby", "welcome") |> Message.save
+    create_message("someone", "happy", "welcome") |> Message.save
+    {:ok, reply, _} =
+      socket("user_id", %{some: :assign})
+      |> subscribe_and_join(RoomChannel, "room:lobby", %{"name" => "happy"})
+    assert %User{name: "someone", state: "online"} in reply.rooms
+    assert %User{name: "happy", state: "online"} in reply.rooms
+    assert %User{name: "lobby", state: "online"} in reply.rooms
+    assert %User{name: "admin", state: "offline"} in reply.rooms
+    refute %User{name: "system", state: "offline"} in reply.rooms
+    refute %User{name: "system", state: "online"} in reply.rooms
   end
 
   test "leave make client teminated and call User.leave" do
@@ -35,7 +50,7 @@ defmodule ElmSimpleChat.RoomChannelTest do
     {:ok, _, socket} =
       socket("user_id", %{some: :assign})
       |> subscribe_and_join(RoomChannel, "room:lobby", %{"name" => "it's me"})
-    assert %User{name: "it's me"} in User.get_users
+    assert %User{name: "it's me", state: "online"} in User.get_users
     push socket, "leave", %{}
     assert_receive {:EXIT, _, :normal}
     refute %User{name: "it's me"} in User.get_users

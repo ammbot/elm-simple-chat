@@ -1,5 +1,5 @@
 defmodule ElmSimpleChat.User do
-  defstruct name: ""
+  defstruct name: "", state: "offline"
   require Logger
 
   @doc """
@@ -29,7 +29,7 @@ defmodule ElmSimpleChat.User do
     __MODULE__
     |> :ets.first
     |> get_users([])
-    |> Enum.map(&%__MODULE__{name: &1})
+    |> Enum.map(&%__MODULE__{name: &1, state: "online"})
   end
 
   defp get_users(:'$end_of_table', acc) do

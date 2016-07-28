@@ -10,7 +10,8 @@ defmodule ElmSimpleChat.RoomChannel do
       User.join payload["name"]
       new_socket = assign(socket, :name, payload["name"])
       put_private_channel(new_socket)
-      {:ok, new_socket}
+      rooms = get_rooms(new_socket)
+      {:ok, %{rooms: rooms}, new_socket}
     else
       {:error, %{reason: "unauthorized"}}
     end
@@ -63,6 +64,23 @@ defmodule ElmSimpleChat.RoomChannel do
 
   defp put_private_channel(%{assigns: %{name: name}}) do
     :ok = Endpoint.subscribe("room:" <> name)
+  end
+
+  # get rooms for user.
+  # from online users and historic chat rooms
+  defp get_rooms(socket) do
+    online = User.get_users
+    online_name = Enum.map(online, &(&1.name)) |> MapSet.new
+    messages = Message.get(socket.assigns.name)
+    users_from_messages =
+      Enum.map(messages, &[&1.from, &1.to])
+      |> List.flatten
+      |> MapSet.new
+      |> MapSet.delete("lobby")
+    offline =
+      MapSet.difference(users_from_messages, online_name)
+      |> Enum.map(&%User{name: &1, state: "offline"})
+    online ++ offline ++ [%User{name: "lobby", state: "online"}]
   end
 
 end
