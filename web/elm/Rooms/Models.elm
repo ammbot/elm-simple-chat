@@ -8,8 +8,13 @@ type State
   = Online
   | Offline
 
+type alias Presence =
+  { name : String
+  , state : State
+  }
+
 type alias Message =
-  { id: String
+  { id : String
   , from : String
   , to : String
   , body : String
@@ -32,17 +37,31 @@ init : Model
 init =
   Model Dict.empty "lobby" ""
 
+presenceToRoom : Presence -> Room
+presenceToRoom presence =
+  Room presence.name presence.state [] 0
+
+toState : String -> State
+toState state =
+  case state of
+    "online" ->
+      Online
+    _ ->
+      Offline
+
+toPresence : String -> String -> Presence
+toPresence name state =
+  Presence name (toState state)
+
 toRoom : String -> String -> (List Message) -> Int -> Room
 toRoom name state messages badge =
-  let
-      state' =
-        case state of
-          "online" ->
-            Online
-          _ ->
-            Offline
-  in
-      Room name state' messages badge
+  Room name (toState state) messages badge
+
+decodePresence : JD.Decoder Presence
+decodePresence =
+  JD.object2 toPresence
+    ("name" := JD.string)
+    ("state" := JD.string)
 
 decodeRoom : JD.Decoder Room
 decodeRoom =

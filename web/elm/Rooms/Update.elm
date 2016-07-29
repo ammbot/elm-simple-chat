@@ -4,22 +4,28 @@ import Dict
 import Json.Decode as JD
 
 import Rooms.Msgs exposing (Msg(..))
-import Rooms.Models exposing (Model, Room, decodeRoom, decodeRooms)
+import Rooms.Models exposing (Model, Room, decodePresence, decodeRooms, presenceToRoom)
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
     Presence raw ->
-      case JD.decodeValue decodeRoom raw of
-        Ok room ->
+      case JD.decodeValue decodePresence raw of
+        Ok presence ->
           let
               updatedRooms =
-                Dict.update room.name (\_ -> Just room) model.rooms
+                Dict.update presence.name (\room ->
+                  case room of
+                    Just room' ->
+                      Just { room' | state = presence.state }
+                    Nothing ->
+                      Just ( presenceToRoom presence )
+                ) model.rooms
           in
               ( { model | rooms = updatedRooms }
               , Cmd.none
               )
-        Err _ ->
+        Err err ->
           ( model, Cmd.none )
 
     SetCursor room ->

@@ -17,8 +17,6 @@ import Chatbox.Msgs
 import Chatbox.Update
 import Chatbox.Models as Chatbox
 
-import Debug
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
@@ -43,10 +41,7 @@ update msg model =
           )
 
     LeavedChannel room ->
-      let
-        _ = Debug.log "LeavedChannel" room
-      in
-          ( model, Cmd.none )
+      ( model, Cmd.none )
 
     ErrorChannel room ->
       let
