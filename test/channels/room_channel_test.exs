@@ -6,9 +6,8 @@ defmodule ElmSimpleChat.RoomChannelTest do
   alias ElmSimpleChat.{User, Message}
   alias ElmSimpleChat.RoomChannel
 
-  require Logger
-
   setup do
+    :ets.delete_all_objects Message
     create_message("admin", "system", "welcome") |> Message.save
     create_message("admin", "lobby", "welcome") |> Message.save
     create_message("someone", "happy", "welcome") |> Message.save
@@ -43,12 +42,14 @@ defmodule ElmSimpleChat.RoomChannelTest do
   test "join will got rooms event for current online users" <>
        "and chat history that we had. list will not included self" do
     assert_push "rooms", %{rooms: rooms}
-    assert %User{name: "lobby", state: "online"} in rooms
-    assert %User{name: "admin", state: "offline"} in rooms
-    refute %User{name: "someone", state: "online"} in rooms
-    refute %User{name: "someone", state: "offline"} in rooms
-    refute %User{name: "system", state: "offline"} in rooms
-    refute %User{name: "system", state: "online"} in rooms
+    names = Enum.map(rooms, &(&1["room"]))
+    assert length(names) == 2
+    assert %User{name: "lobby", state: "online"} in names
+    assert %User{name: "happy", state: "offline"} in names
+    lobby_idx = Enum.find_index(rooms, fn(r) -> r["room"].name == "lobby" end)
+    Enum.each((Enum.at rooms, lobby_idx)["messages"], fn(m) -> assert m.to == "lobby" end)
+    happy_idx = Enum.find_index(rooms, fn(r) -> r["room"].name == "happy" end)
+    [%Message{to: "happy"}] = (Enum.at rooms, happy_idx)["messages"]
   end
 
   test "leave make client teminated and call User.leave" do

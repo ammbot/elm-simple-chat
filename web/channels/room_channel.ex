@@ -81,19 +81,25 @@ defmodule ElmSimpleChat.RoomChannel do
   # from online users and historic chat rooms
   # rooms will not included self
   defp get_rooms(socket) do
-    online = User.get_users |> Enum.reject(&(&1.name == socket.assigns.name))
-    online_name = Enum.map(online, &(&1.name)) |> MapSet.new
-    messages = Message.get(socket.assigns.name)
-    users_from_messages =
-      Enum.map(messages, &[&1.from, &1.to])
-      |> List.flatten
-      |> MapSet.new
-      |> MapSet.delete("lobby")
-      |> MapSet.delete(socket.assigns.name)
-    offline =
-      MapSet.difference(users_from_messages, online_name)
-      |> Enum.map(&%User{name: &1, state: "offline"})
-    online ++ offline ++ [%User{name: "lobby", state: "online"}]
+    me = socket.assigns.name
+    online_name =
+      User.get_users
+      |> Enum.map(&(&1.name))
+      |> List.insert_at(-1, "lobby")
+    me
+    |> Message.get
+    |> Enum.group_by(fn message ->
+      cond do
+        message.to == "lobby" -> message.to
+        message.from == me -> message.to
+        message.to == me -> message.from
+      end
+    end)
+    |> Enum.map(fn {key, messages} ->
+      state = if key in online_name, do: "online", else: "offline"
+      %{"room" => %User{name: key, state: state},
+        "messages" => messages}
+    end)
   end
 
 end

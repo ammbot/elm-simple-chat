@@ -51,7 +51,7 @@ defmodule ElmSimpleChat.Message do
     |> Enum.map(fn [from, to, id, key, body] ->
       %__MODULE__{from: from, to: to, id: id, key: key, body: body}
     end)
-    |> sort_latest
+    |> Enum.sort(&(&1.id < &2.id))
   end
 
   @doc """
@@ -64,7 +64,7 @@ defmodule ElmSimpleChat.Message do
     key = generate_key(from, to)
     :ets.lookup(__MODULE__, key)
     |> Enum.map(fn {_key, val} -> val end)
-    |> sort_latest
+    |> Enum.sort(&(&1.id < &2.id))
   end
 
   defp generate_key(_from, "lobby") do

@@ -40,7 +40,7 @@ defmodule ElmSimpleChat.MessageTest do
     msgs = Message.get("a", "c")
     ^msgs = Message.get("c", "a")
     assert length(msgs) == 2
-    [%Message{body: "gracias"}, %Message{body: "bonita"}] = msgs
+    [%Message{body: "bonita"}, %Message{body: "gracias"}] = msgs
 
     msgs = Message.get("lobby", "lobby")
     assert length(msgs) == 1
@@ -56,10 +56,10 @@ defmodule ElmSimpleChat.MessageTest do
     create_message("rye", "jay", "secret") |> Message.save
     msgs = Message.get("gane")
     assert length(msgs) == 4
-    [%Message{body: "welcome"},
-     %Message{body: "aha"},
+    [%Message{body: "hoola"},
      %Message{body: ":>"},
-     %Message{body: "hoola"}] = msgs
+     %Message{body: "aha"},
+     %Message{body: "welcome"}] = msgs
   end
 
   test "table message should flushed to disk 1 second after updated" do
