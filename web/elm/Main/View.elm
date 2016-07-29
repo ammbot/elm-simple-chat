@@ -9,7 +9,8 @@ import Main.Models exposing (Model)
 
 import Login.Msgs
 import Login.Login as Login
-import Rooms.Rooms as Rooms
+import Rooms.View as Rooms
+import Rooms.Messages as Messages
 import Chatbox.Chatbox as Chatbox
 
 import Debug
@@ -19,15 +20,7 @@ view model =
   case model.login.state of
     Login.Msgs.Joined ->
       div [ class "ui stackable fluid column grid" ]
-        [ div [ class "row" ]
-            [ div [ class "six wide column" ]
-                [ div [ class "ui segment" ]
-                    [ Html.App.map RoomsMsg (Rooms.view model.rooms) ]
-                ]
-            , div [ class "eight wide column" ]
-                []
-                -- ( Messages.view model )
-            ]
+        [ Html.App.map RoomsMsg (Rooms.view model.rooms)
         , div [ class "row" ]
             [ div [ class "column" ]
                 [ Html.App.map ChatboxMsg (Chatbox.view model.chatbox) ]
