@@ -25,9 +25,21 @@ defmodule ElmSimpleChat.RoomChannel do
 
   # It is also common to receive messages from the client and
   # broadcast to everyone in the current topic (room:lobby).
-  def handle_in("shout", %{"to" => "room:lobby"} = payload, socket) do
-    payload = Map.put(payload, "to", "lobby") |> Message.new
-    broadcast socket, "shout", payload
+  def handle_in("shout",
+      %{"from" => "room:" <> from, "to" => "room:" <> to} = payload, socket) do
+    message =
+      payload
+      |> Map.put("to", to)
+      |> Map.put("from", from)
+      |> Message.new
+    Message.save message
+    case to do
+      "lobby" ->
+        broadcast socket, "shout", message
+      _ ->
+        Endpoint.broadcast "room:" <> from, "private", message
+        Endpoint.broadcast "room:" <> to, "private", message
+    end
     {:noreply, socket}
   end
 
@@ -47,9 +59,11 @@ defmodule ElmSimpleChat.RoomChannel do
     {:noreply, socket}
   end
 
-  def handle_info(%Broadcast{topic: _, event: "private", payload: payload}, socket) do
-    payload = Message.new payload
-    push socket, "private", payload
+  def handle_info(%Broadcast{
+      event: "private",
+      payload: %Message{} = message},
+     socket) do
+    push socket, "shout", message
     {:noreply, socket}
   end
 
@@ -85,21 +99,31 @@ defmodule ElmSimpleChat.RoomChannel do
     online_name =
       User.get_users
       |> Enum.map(&(&1.name))
+      |> List.delete(me)
       |> List.insert_at(-1, "lobby")
-    me
-    |> Message.get
-    |> Enum.group_by(fn message ->
-      cond do
-        message.to == "lobby" -> message.to
-        message.from == me -> message.to
-        message.to == me -> message.from
-      end
-    end)
-    |> Enum.map(fn {key, messages} ->
-      state = if key in online_name, do: "online", else: "offline"
-      %{"room" => %User{name: key, state: state},
-        "messages" => messages}
-    end)
+      |> MapSet.new
+    rooms =
+      me
+      |> Message.get
+      |> Enum.group_by(&(group_by_key &1, me))
+      |> Enum.map(fn {key, messages} ->
+        state = if key in online_name, do: "online", else: "offline"
+        %{"room" => %User{name: key, state: state},
+          "messages" => messages}
+      end)
+    rooms_name = Enum.map(rooms, &(&1["room"].name)) |> MapSet.new
+    to_add = MapSet.difference online_name, rooms_name
+    Enum.reduce to_add, rooms, fn name, acc ->
+      [%{"room" => %User{name: name, state: "online"}, "messages" => []} | acc]
+    end
+  end
+
+  defp group_by_key(message, me) do
+    cond do
+      message.to == "lobby" -> message.to
+      message.from == me -> message.to
+      message.to == me -> message.from
+    end
   end
 
 end

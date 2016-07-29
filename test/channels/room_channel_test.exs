@@ -40,10 +40,9 @@ defmodule ElmSimpleChat.RoomChannelTest do
   end
 
   test "join will got rooms event for current online users" <>
-       "and chat history that we had. list will not included self" do
+       " and chat history that we had. list will not included self" do
     assert_push "rooms", %{rooms: rooms}
     names = Enum.map(rooms, &(&1["room"]))
-    assert length(names) == 2
     assert %User{name: "lobby", state: "online"} in names
     assert %User{name: "happy", state: "offline"} in names
     lobby_idx = Enum.find_index(rooms, fn(r) -> r["room"].name == "lobby" end)
@@ -69,7 +68,7 @@ defmodule ElmSimpleChat.RoomChannelTest do
   end
 
   test "shout broadcasts to room:lobby", %{socket: socket} do
-    push socket, "shout", %{"from" => "me", "to" => "room:lobby", "body" => "hello"}
+    push socket, "shout", %{"from" => "room:me", "to" => "room:lobby", "body" => "hello"}
     assert_broadcast "shout", %Message{to: "lobby"}
   end
 
@@ -86,8 +85,16 @@ defmodule ElmSimpleChat.RoomChannelTest do
 
   test "push to private channel" do
     Endpoint.broadcast("room:someone",  "private",
-     %{"from" => "me", "to" => "someone", "body" => "hey"})
-    assert_push "private", %Message{from: "me", to: "someone", body: "hey"}
+     %Message{from: "me", to: "someone", body: "hey"})
+    assert_push "shout", %Message{from: "me", to: "someone", body: "hey"}
+  end
+
+  test "shout to room:lobby with private user" do
+    {:ok, _, socket} =
+      socket("user_id", %{some: :assign})
+      |> subscribe_and_join(RoomChannel, "room:lobby", %{"name" => "who"})
+    push socket, "shout", %{"from" => "room:who", "to" => "room:someone", "body" => "hello"}
+    assert_push "shout", %Message{from: "who", to: "someone", body: "hello"}
   end
 
 end

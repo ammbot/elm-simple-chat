@@ -26,8 +26,6 @@ joinChannel model =
           model.phxSocket
             |> Phoenix.Socket.on "rooms" room RoomsMessage
             |> Phoenix.Socket.on "shout" room ReceivedMessage
-            |> Phoenix.Socket.on "private" room PrivateMessage
-            |> Phoenix.Socket.on "newcomer" room NewcomerMessage
             |> Phoenix.Socket.on "presence" room PresenceMessage
             |> Phoenix.Socket.join channel
   in
@@ -38,8 +36,8 @@ push model =
   let
       payload =
         JE.object [ ("body", JE.string model.chatbox.body)
-                  , ("from", JE.string model.login.name)
-                  , ("to", JE.string "room:lobby")  -- FIXME
+                  , ("from", JE.string ("room:" ++ model.login.name))
+                  , ("to", JE.string ("room:" ++ model.rooms.cursor))
                   ]
       push' =
         Phoenix.Push.init "shout" "room:lobby"

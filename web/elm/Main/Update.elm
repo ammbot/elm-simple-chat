@@ -65,10 +65,13 @@ update msg model =
           )
 
     ReceivedMessage raw ->
-      ( model, Cmd.none )
-
-    PrivateMessage raw ->
-      ( model, Cmd.none )
+      let
+          ( updatedRooms, cmd ) =
+            Rooms.Update.update (Rooms.Msgs.NewMessage raw) model.rooms
+      in
+          ( { model | rooms = updatedRooms }
+          , Cmd.map RoomsMsg cmd
+          )
 
     NewcomerMessage raw ->
       ( model, Cmd.none )

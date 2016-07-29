@@ -16,7 +16,6 @@ type Msg
   | JoinError String
   | RoomsMessage JE.Value
   | ReceivedMessage JE.Value
-  | PrivateMessage JE.Value
   | NewcomerMessage JE.Value
   | PresenceMessage JE.Value
   | LoginMsg Login.Msgs.Msg

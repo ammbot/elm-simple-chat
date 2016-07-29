@@ -7,3 +7,4 @@ type Msg
   | SetCursor String
   | SetSelf String
   | Refresh JE.Value
+  | NewMessage JE.Value
