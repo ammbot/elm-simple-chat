@@ -27,8 +27,11 @@ type alias Room =
   , badge : Int
   }
 
+type alias Rooms =
+  Dict String Room
+
 type alias Model =
-  { rooms : Dict String Room
+  { rooms : Rooms
   , cursor : String
   , self : String
   }
@@ -36,6 +39,15 @@ type alias Model =
 init : Model
 init =
   Model Dict.empty "lobby" ""
+
+roomKey : Message -> Model -> String
+roomKey message model =
+  if message.to == "lobby" then
+    "lobby"
+  else if message.from == model.self then
+    message.to
+  else
+    message.from
 
 presenceToRoom : Presence -> Room
 presenceToRoom presence =
@@ -57,6 +69,51 @@ toRoom : String -> String -> (List Message) -> Int -> Room
 toRoom name state messages badge =
   Room name (toState state) messages badge
 
+addNewMessage : Message -> Model -> Model
+addNewMessage message model =
+  let
+      key =
+        roomKey message model
+      updatedRooms =
+        Dict.update key (\room ->
+          case room of
+            Just room' ->
+              let
+                  newMessages = room'.messages ++ [ message ]
+                  badge =
+                    if model.cursor == key then
+                      0
+                    else
+                      room'.badge + 1
+              in
+                  Just { room'
+                       | messages  = newMessages
+                       , badge = badge
+                       }
+
+            Nothing ->
+              Just ( Room key Online [ message ] 1 )
+        ) model.rooms
+  in
+      { model | rooms = updatedRooms }
+
+setCursor : String -> Model -> Model
+setCursor key model =
+  let
+      updatedRooms =
+        Dict.update key (\room ->
+          case room of
+            Just room' ->
+              Just { room' | badge = 0 }
+            Nothing ->
+              Just ( Room key Online [] 0 )
+        ) model.rooms
+  in
+      { model
+      | rooms = updatedRooms
+      , cursor = key
+      }
+
 decodePresence : JD.Decoder Presence
 decodePresence =
   JD.object2 toPresence
@@ -69,7 +126,7 @@ decodeRoom =
     (JD.at ["room", "name"] JD.string)
     (JD.at ["room", "state"] JD.string)
     (decodeMessages)
-    (JD.succeed 0) -- FIXME
+    (JD.succeed 0)
 
 
 decodeMessage : JD.Decoder Message

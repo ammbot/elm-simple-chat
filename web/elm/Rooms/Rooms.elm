@@ -18,8 +18,10 @@ view model =
         model.rooms
           |> Dict.remove "lobby"
           |> Dict.remove model.self
-      online =
-        Dict.filter (\k v -> isOnline v) users
+      lobbyBadge =
+        case Dict.get "lobby" model.rooms of
+          Just lobby -> lobby.badge
+          Nothing -> 0
       rooms =
         users
           |> Dict.values
@@ -30,7 +32,7 @@ view model =
         [ a [ class ("teal item " ++ active), onClick (SetCursor "lobby") ]
             [ text "Lobby"
             , div [ class "ui teal label" ]
-                [ text (toString ((Dict.size online) + 1)) ]
+                [ text (toString lobbyBadge) ]
             ]
         ]
   in
@@ -44,7 +46,8 @@ listRooms cursor room =
   in
       a [ class ("teal item " ++ (isActive cursor room.name)), onClick (SetCursor room.name) ]
         [ text room.name
-        , a [ class ("ui empty circular label " ++ color) ] []
+        , div [ class ("ui label " ++ color) ]
+            [ text (toString room.badge) ]
         ]
 
 roomColor : Room -> String
