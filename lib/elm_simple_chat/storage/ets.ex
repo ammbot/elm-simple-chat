@@ -2,9 +2,14 @@ defmodule ElmSimpleChat.Storage.ETS do
   use GenServer
   alias ElmSimpleChat.Storage
   alias ElmSimpleChat.{User, Message}
+  require Logger
+
+  defmodule State do
+    defstruct tab: nil, file: nil
+  end
 
   defexception message: "error"
-  
+
   @opts [
     :public,
     :named_table,
@@ -19,16 +24,24 @@ defmodule ElmSimpleChat.Storage.ETS do
   def init(_) do
     {:ok, _tab} = init_users_table
     {:ok, _tab} = init_messages_table
-    {:ok, nil}
+    {:ok, %State{}}
   end
 
   def flush(Message) do
     GenServer.call Storage, {:flush, Message, conf[:messages_file]}
   end
 
-  def handle_call({:flush, tab, file}, _from, state) when is_list(file) do
-    reply = tab |> :ets.tab2file(file)
-    {:reply, reply, state}
+  def handle_call({:flush, tab, file}, _from, %State{tab: nil}) when is_list(file) do
+    Process.send_after self, :flush, 1000
+    {:reply, :ok, %State{tab: tab, file: file}}
+  end
+  def handle_call({:flush, _tab, _file}, _from, %State{} = state) do
+    {:reply, :ok, state}
+  end
+
+  def handle_info(:flush, %State{tab: tab, file: file}) do
+    tab |> :ets.tab2file(file)
+    {:noreply, %State{}}
   end
 
   defp init_users_table do

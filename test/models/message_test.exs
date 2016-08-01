@@ -70,7 +70,7 @@ defmodule ElmSimpleChat.MessageTest do
     File.rm file
 
     create_message("H", "O", "luego") |> Message.save
-    Process.sleep 1000
+    Process.sleep 1100
     assert File.exists?(file) == true
   end
 
